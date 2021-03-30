@@ -91,3 +91,45 @@ C:\aetha\GitHub\Sanity Checks\obj\Debug\net5.0\Sanity Checks.genruntimeconfig.ca
 C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.dll
 C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\ref\Sanity Checks.dll
 C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.pdb
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Sanity Checks.exe
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Sanity Checks.deps.json
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Sanity Checks.runtimeconfig.json
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Sanity Checks.runtimeconfig.dev.json
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Sanity Checks.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\ref\Sanity Checks.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Sanity Checks.pdb
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\FastMember.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.Data.SqlClient.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.Identity.Client.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.IdentityModel.Logging.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.IdentityModel.Protocols.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.IdentityModel.Tokens.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\Microsoft.Win32.SystemEvents.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.Configuration.ConfigurationManager.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.Drawing.Common.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.IdentityModel.Tokens.Jwt.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.Runtime.Caching.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.Security.Cryptography.ProtectedData.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.Security.Permissions.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\System.Windows.Extensions.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\unix\lib\netcoreapp3.1\Microsoft.Data.SqlClient.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win\lib\netcoreapp3.1\Microsoft.Data.SqlClient.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win-arm64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win-x64\native\Microsoft.Data.SqlClient.SNI.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win\lib\netcoreapp3.0\Microsoft.Win32.SystemEvents.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win\lib\netstandard2.0\System.Runtime.Caching.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win\lib\netstandard2.0\System.Security.Cryptography.ProtectedData.dll
+C:\aetha\GitHub\Network-data-import-tool\bin\Debug\net5.0\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.csprojAssemblyReference.cache
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.GeneratedMSBuildEditorConfig.editorconfig
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.AssemblyInfoInputs.cache
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.AssemblyInfo.cs
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.csproj.CoreCompileInputs.cache
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.csproj.CopyComplete
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.genruntimeconfig.cache

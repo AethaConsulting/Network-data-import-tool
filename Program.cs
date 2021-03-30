@@ -6,6 +6,8 @@ using System.ComponentModel;
 using System.IO;
 using FastMember;
 using Microsoft.Data.SqlClient;
+using System.Text;
+using System.Diagnostics;
 
 namespace Sanity_Checks
 {
@@ -90,23 +92,11 @@ namespace Sanity_Checks
                 }
             }
 
+
+
             foreach (var f in di.EnumerateFiles())
             {
-                FileStream ostrm;
-                StreamWriter writer;
-                TextWriter oldOut = Console.Out;
-                try
-                {
-                    ostrm = new FileStream("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING\\Import_" + f.FullName + "_" + DateTime.Now.ToString() + ".txt", FileMode.OpenOrCreate, FileAccess.Write);
-                    writer = new StreamWriter(ostrm);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Cannot open Redirect.txt for writing");
-                    Console.WriteLine(e.Message);
-                    return;
-                }
-                Console.SetOut(writer);
+                InitiateTracer(f);
 
                 int counter = 0;
                 int wrongDL_counter = 0;
@@ -129,8 +119,8 @@ namespace Sanity_Checks
 
                 var StartTime = DateTime.Now.ToString();
                 dataStore_Temp.Clear();
-                Console.WriteLine("Current File: " + f.FullName);
-                Console.WriteLine("Start of analysis: " + DateTime.Now.ToString());
+                Trace.WriteLine("Current File: " + f.FullName);
+                Trace.WriteLine("Start of analysis: " + DateTime.Now.ToString());
                 var DateParts = f.FullName.Split("_");
                 var DatePartDay = DateParts[1].Substring(0, 2);
                 var DatePartYear = DateParts[1].Substring(5, 4);
@@ -691,13 +681,24 @@ namespace Sanity_Checks
 
                 Console.WriteLine("Start Time: " + StartTime);
                 Console.WriteLine("End Time: " + DateTime.Now.ToString());
-                Console.SetOut(oldOut);
-                writer.Close();
-                ostrm.Close();
             }
+
 
             Console.WriteLine("Done");
             Console.ReadLine();
+        }
+        public static void InitiateTracer(FileInfo f)
+        {
+            Trace.Listeners.Clear();
+            var twtl = new TextWriterTraceListener("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING\\Logs\\Import_" + f.Name.Replace(".csv", "") + "_" + DateTime.Now.ToShortDateString().Replace("/", "") + "_" + DateTime.Now.ToShortTimeString() + ".txt")
+            {
+                Name = "TextLogger",
+                TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime
+            };
+            var ctl = new ConsoleTraceListener(false) { TraceOutputOptions = TraceOptions.DateTime };
+            Trace.Listeners.Add(twtl);
+            Trace.Listeners.Add(ctl);
+            Trace.AutoFlush = true;
         }
     }
 
@@ -747,8 +748,11 @@ namespace Sanity_Checks
         {
             get; set;
         }
+        
     }
+
 }
+
 
 
 
