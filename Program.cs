@@ -86,7 +86,7 @@ namespace Sanity_Checks
                     var result = GetCellIds.ExecuteReader();
                     while (result.Read())
                     {
-                        //Console.WriteLine(result[0].ToString());
+                        //Trace.WriteLine(result[0].ToString());
                         idsInDb.Add(result[0].ToString().Trim());
                     }
                 }
@@ -125,7 +125,7 @@ namespace Sanity_Checks
                 var DatePartDay = DateParts[1].Substring(0, 2);
                 var DatePartYear = DateParts[1].Substring(5, 4);
                 var CorrectDate = (DatePartYear + "-02-" + DatePartDay);
-                Console.WriteLine("Date (Check for validity of code): " + CorrectDate);
+                Trace.WriteLine("Date (Check for validity of code): " + CorrectDate);
                 using (var Connection = new SqlConnection(connectionString))
                 {
                     Connection.Open();
@@ -160,7 +160,7 @@ namespace Sanity_Checks
                         counter++;
                         if (counter % 1000 == 0)
                         {
-                            Console.WriteLine(counter + " rows parsed. Current time: " + DateTime.Now.ToString());
+                            Trace.WriteLine(counter + " rows parsed. Current time: " + DateTime.Now.ToString());
                         }
                         var row = rdr.ReadLine();
                         var cells = row.Split(',');
@@ -523,117 +523,117 @@ namespace Sanity_Checks
                     }
                 }
                 double missrate = Math.Round((double)missingIds.Count / allIds.Count, 3) * 100;
-                Console.WriteLine("Unique IDs in data set: " + allIds.Count);
-                Console.WriteLine("Missing Ids: " + missingIds.Count + ". Miss rate: " + missrate + "%");
-                Console.WriteLine("Wrong Dates: " + wrongDates.Count);
-                Console.WriteLine("Wrong Times: " + wrongTimes.Count);
+                Trace.WriteLine("Unique IDs in data set: " + allIds.Count);
+                Trace.WriteLine("Missing Ids: " + missingIds.Count + ". Miss rate: " + missrate + "%");
+                Trace.WriteLine("Wrong Dates: " + wrongDates.Count);
+                Trace.WriteLine("Wrong Times: " + wrongTimes.Count);
 
 
                 if (wrongDL_counter != 0)
                 {
-                    Console.WriteLine("Wrong DL traffic data: " + wrongDL_counter + " wrong entries, " + wrongDLTraffic.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong DL traffic data: " + wrongDL_counter + " wrong entries, " + wrongDLTraffic.Count + " uniquely wrong values.");
                     foreach (var dl in wrongDLTraffic)
                     {
-                        Console.WriteLine(dl);
+                        Trace.WriteLine(dl);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("DL Traffic data OK!");
+                    Trace.WriteLine("DL Traffic data OK!");
                 }
 
                 if (wrongUL_counter != 0)
                 {
-                    Console.WriteLine("Wrong UL traffic data: " + wrongUL_counter + " wrong entries, " + wrongULTraffic.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong UL traffic data: " + wrongUL_counter + " wrong entries, " + wrongULTraffic.Count + " uniquely wrong values.");
                     foreach (var ul in wrongULTraffic)
                     {
-                        Console.WriteLine(ul);
+                        Trace.WriteLine(ul);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("UL Traffic data OK!");
+                    Trace.WriteLine("UL Traffic data OK!");
                 }
 
                 if (wrongRB_counter != 0)
                 {
-                    Console.WriteLine("Wrong RB Utilisation data: " + wrongRB_counter + " wrong entries, " + wrongRBUtilisation.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong RB Utilisation data: " + wrongRB_counter + " wrong entries, " + wrongRBUtilisation.Count + " uniquely wrong values.");
                     foreach (var rb in wrongRBUtilisation)
                     {
-                        Console.WriteLine(rb);
+                        Trace.WriteLine(rb);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("RB Utilisation data OK!");
+                    Trace.WriteLine("RB Utilisation data OK!");
                 }
 
                 if (wrongUserThroughput_counter != 0)
                 {
-                    Console.WriteLine("Wrong User Throughout data: " + wrongUserThroughput_counter + " wrong entries, " + wrongUserThroughput.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong User Throughout data: " + wrongUserThroughput_counter + " wrong entries, " + wrongUserThroughput.Count + " uniquely wrong values.");
                     foreach (var ut in wrongUserThroughput)
                     {
-                        Console.WriteLine(ut);
+                        Trace.WriteLine(ut);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("User Throughput data OK!");
+                    Trace.WriteLine("User Throughput data OK!");
                 }
 
                 if (wrongCellThroughput_counter != 0)
                 {
-                    Console.WriteLine("Wrong Cell Throughput data: " + wrongCellThroughput_counter + " wrong entries, " + wrongCellThroughput.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong Cell Throughput data: " + wrongCellThroughput_counter + " wrong entries, " + wrongCellThroughput.Count + " uniquely wrong values.");
 
 
 
                     foreach (var ct in wrongCellThroughput)
                     {
-                        Console.WriteLine(ct);
+                        Trace.WriteLine(ct);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Cell Throughput data OK!");
+                    Trace.WriteLine("Cell Throughput data OK!");
                 }
 
                 if (wrongAverageUsers_counter != 0)
                 {
-                    Console.WriteLine("Wrong Average Users data: " + wrongAverageUsers_counter + " wrong entries, " + wrongAverageUsers.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong Average Users data: " + wrongAverageUsers_counter + " wrong entries, " + wrongAverageUsers.Count + " uniquely wrong values.");
                     foreach (var au in wrongAverageUsers)
                     {
-                        Console.WriteLine(au);
+                        Trace.WriteLine(au);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Average Users data OK!");
+                    Trace.WriteLine("Average Users data OK!");
                 }
 
                 if (wrongActiveCellTime_counter != 0)
                 {
-                    Console.WriteLine("Wrong Active Cell Time data: " + wrongActiveCellTime_counter + " wrong entries, " + wrongActiveCellTime.Count + " uniquely wrong values.");
+                    Trace.WriteLine("Wrong Active Cell Time data: " + wrongActiveCellTime_counter + " wrong entries, " + wrongActiveCellTime.Count + " uniquely wrong values.");
                     foreach (var act in wrongActiveCellTime)
                     {
-                        Console.WriteLine(act);
+                        Trace.WriteLine(act);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Active Cell Time data OK!");
+                    Trace.WriteLine("Active Cell Time data OK!");
                 }
 
                 if (wrongCQI_counter != 0)
                 {
-                    Console.WriteLine("Wrong CQI data: " + wrongCQI_counter + " wrong entries, " + wrongCQI.Count + " uniquely wrong values."); Console.WriteLine("Wrong CQI:");
+                    Trace.WriteLine("Wrong CQI data: " + wrongCQI_counter + " wrong entries, " + wrongCQI.Count + " uniquely wrong values."); Trace.WriteLine("Wrong CQI:");
                     foreach (var cqi in wrongCQI)
                     {
-                        Console.WriteLine(cqi);
+                        Trace.WriteLine(cqi);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("CQI data OK!");
+                    Trace.WriteLine("CQI data OK!");
                 }
 
 
@@ -645,12 +645,12 @@ namespace Sanity_Checks
                 {
                     using (var reader = ObjectReader.Create(dataStore_Temp, new string[] { "Cell_ID", "Date", "Time", "Data_UL_MB", "Data_DL_MB", "RB_Utilisation", "UserThroughputMbps", "CellThroughputMbps", "AverageUsers", "ActiveCellTime", "CQI" }))
                     {
-                        Console.WriteLine("SQL Upload started: " + DateTime.Now.ToString());
+                        Trace.WriteLine("SQL Upload started: " + DateTime.Now.ToString());
                         bcp.DestinationTableName = "Traffic_" + DatePartYear;
                         bcp.BatchSize = 40000;
                         bcp.BulkCopyTimeout = 0;
                         bcp.WriteToServer(reader);
-                        Console.WriteLine("SQL Upload finished: " + DateTime.Now.ToString());
+                        Trace.WriteLine("SQL Upload finished: " + DateTime.Now.ToString());
                     }
 
                 }
@@ -666,11 +666,11 @@ namespace Sanity_Checks
                         {
                             if (Math.Round(double.Parse(result[0].ToString()), 5) - Math.Round(Temp_DL_Sum, 5) == 0)
                             {
-                                Console.WriteLine("All DL Traffic data has been successfully transferred to database");
+                                Trace.WriteLine("All DL Traffic data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_DL_Sum, 5));
                             }
                             else
                             {
-                                Console.WriteLine("Not all DL Traffic data was transferred to database");
+                                Trace.WriteLine("Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_DL_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[0].ToString()), 5)));
                             }
 
                         }
@@ -679,18 +679,19 @@ namespace Sanity_Checks
 
 
 
-                Console.WriteLine("Start Time: " + StartTime);
-                Console.WriteLine("End Time: " + DateTime.Now.ToString());
+                Trace.WriteLine("Start Time: " + StartTime);
+                Trace.WriteLine("End Time: " + DateTime.Now.ToString());
             }
 
 
-            Console.WriteLine("Done");
+            Trace.WriteLine("Done");
+            Trace.WriteLine("");
             Console.ReadLine();
         }
         public static void InitiateTracer(FileInfo f)
         {
             Trace.Listeners.Clear();
-            var twtl = new TextWriterTraceListener("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING\\Logs\\Import_" + f.Name.Replace(".csv", "") + "_" + DateTime.Now.ToShortDateString().Replace("/", "") + "_" + DateTime.Now.ToShortTimeString() + ".txt")
+            var twtl = new TextWriterTraceListener("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING\\Logs\\Import_" + f.Name.Replace(".csv", "") + "_" + DateTime.Now.ToShortDateString().Replace("/", "") + "_" + DateTime.Now.ToShortTimeString().Replace(":","-") + ".txt")
             {
                 Name = "TextLogger",
                 TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime
