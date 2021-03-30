@@ -29,13 +29,35 @@ namespace Sanity_Checks
         public static List<string> wrongCQI;
         public static List<string> acceptedValues;
 
+
         public static List<string> allIds;
 
         static void Main(string[] args)
         {
+            FileStream ostrm;
+            StreamWriter writer;
+            TextWriter oldOut = Console.Out;
+            try
+            {
+                ostrm = new FileStream("./Redirect.txt", FileMode.OpenOrCreate, FileAccess.Write);
+                writer = new StreamWriter(ostrm);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Cannot open Redirect.txt for writing");
+                Console.WriteLine(e.Message);
+                return;
+            }
+            Console.SetOut(writer);
+            
+            Console.SetOut(oldOut);
+            writer.Close();
+            ostrm.Close();
+            Console.WriteLine("Done");
+
             // var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2021 4G and 5G traffic data");
-            var di = new DirectoryInfo("C:\\Temp");
-            //var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING");
+            //var di = new DirectoryInfo("C:\\Temp");
+            var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING");
 
             dataStore_Temp = new List<Data>();
             dataStore_2020 = new List<Data>();
@@ -54,6 +76,7 @@ namespace Sanity_Checks
             wrongAverageUsers = new List<string>();
             wrongActiveCellTime = new List<string>();
             wrongCQI = new List<string>();
+
 
             allIds = new List<string>();
 
@@ -86,6 +109,8 @@ namespace Sanity_Checks
 
             foreach (var f in di.EnumerateFiles())
             {
+                outputLog = [;
+
                 int counter = 0;
                 int wrongDL_counter = 0;
                 int wrongUL_counter = 0;
