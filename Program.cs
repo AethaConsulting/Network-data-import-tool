@@ -41,8 +41,8 @@ namespace Sanity_Checks
 
 
             // var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2021 4G and 5G traffic data");
-            //var di = new DirectoryInfo("C:\\Temp");
-            var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING");
+            var di = new DirectoryInfo("C:\\Temp");
+            //var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING");
 
             dataStore_Temp = new List<Data>();
             dataStore_2020 = new List<Data>();
@@ -337,7 +337,7 @@ namespace Sanity_Checks
                             }
                         }
                         output.RB_Utilisation = Math.Round(double.Parse(RB_Temp), 5);
-                        Temp_RB_Sum = output.RB_Utilisation;
+                        Temp_RB_Sum += output.RB_Utilisation;
 
                         // User throughput
                         var UserThroughput_Temp = cells[6 + columnAdjustment];
@@ -371,7 +371,7 @@ namespace Sanity_Checks
                             }
                         }
                         output.UserThroughputMbps = Math.Round(double.Parse(UserThroughput_Temp), 5);
-                        Temp_UserThroughput_Sum = output.UserThroughputMbps;
+                        Temp_UserThroughput_Sum += output.UserThroughputMbps;
 
                         // Cell throughput
                         var CellThroughput_Temp = cells[7 + columnAdjustment];
@@ -405,7 +405,7 @@ namespace Sanity_Checks
                             }
                         }
                         output.CellThroughputMbps = Math.Round(double.Parse(CellThroughput_Temp), 5);
-                        Temp_CellThroughput_Sum = output.CellThroughputMbps;
+                        Temp_CellThroughput_Sum += output.CellThroughputMbps;
 
                         // Average users
                         var AverageUsers_Temp = cells[8 + columnAdjustment];
@@ -439,7 +439,7 @@ namespace Sanity_Checks
                             }
                         }
                         output.AverageUsers = Math.Round(double.Parse(AverageUsers_Temp), 5);
-                        Temp_AverageUsers_Sum = output.AverageUsers;
+                        Temp_AverageUsers_Sum += output.AverageUsers;
 
                         // Active cell time
                         var ActiveCellTime_Temp = cells[9 + columnAdjustment];
@@ -473,7 +473,7 @@ namespace Sanity_Checks
                             }
                         }
                         output.ActiveCellTime = Math.Round(double.Parse(ActiveCellTime_Temp), 5);
-                        Temp_ActiveCellTime_Sum = output.ActiveCellTime;
+                        Temp_ActiveCellTime_Sum += output.ActiveCellTime;
 
                         // CQI
                         var CQI_Temp = cells[10 + columnAdjustment];
@@ -507,7 +507,7 @@ namespace Sanity_Checks
                             }
                         }
                         output.CQI = Math.Round(double.Parse(CQI_Temp), 5);
-                        Temp_CQI_Sum = output.CQI;
+                        Temp_CQI_Sum += output.CQI;
 
 
                         // Add this row to the data store
@@ -660,7 +660,7 @@ namespace Sanity_Checks
                     using (SqlCommand CheckUploadData = Connection.CreateCommand())
                     {
                         CheckUploadData.CommandText =
-                            $"SELECT sum(Data_DL_MB) FROM Traffic_{DatePartYear} WHERE date = '{CorrectDate}'";
+                            $"SELECT sum(Data_DL_MB), sum(Data_UL_MB), sum(RB_Utilisation), sum(UserThroughputMbps), sum(CellThroughputMbps), sum(AverageUsers), sum(ActiveCellTime), sum(CQI)  FROM Traffic_{DatePartYear} WHERE date = '{CorrectDate}'";
                         var result = CheckUploadData.ExecuteReader();
                         while (result.Read())
                         {
@@ -670,7 +670,71 @@ namespace Sanity_Checks
                             }
                             else
                             {
-                                Trace.WriteLine("Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_DL_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[0].ToString()), 5)));
+                                Trace.WriteLine("DL Traffic: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_DL_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[0].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[1].ToString()), 5) - Math.Round(Temp_UL_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All UL Traffic data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_UL_Sum, 5));
+                            }
+                            else
+                            {
+                                Trace.WriteLine("UL Traffic: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_UL_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[1].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[2].ToString()), 5) - Math.Round(Temp_RB_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All RB utilisation data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_RB_Sum, 5));
+                            }
+                            else
+                            {
+                                Trace.WriteLine("RB utilisation: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_RB_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[2].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[3].ToString()), 5) - Math.Round(Temp_UserThroughput_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All User throughput data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_UserThroughput_Sum, 5));
+                            }
+                            else
+                            {
+                                Trace.WriteLine("User Throughput: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_UserThroughput_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[3].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[4].ToString()), 5) - Math.Round(Temp_CellThroughput_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All Cell throughput has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_CellThroughput_Sum, 5));
+                            }
+                            else
+                            {
+                                Trace.WriteLine("Cell Throughput: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_CellThroughput_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[4].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[5].ToString()), 5) - Math.Round(Temp_AverageUsers_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All Average users data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_AverageUsers_Sum, 5));
+                            }
+
+                            else
+                            {
+                                Trace.WriteLine("Average users: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_AverageUsers_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[5].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[6].ToString()), 5) - Math.Round(Temp_ActiveCellTime_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All Active cell time data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_ActiveCellTime_Sum, 5));
+                            }
+                            else
+                            {
+                                Trace.WriteLine("Cell Time: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_ActiveCellTime_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[6].ToString()), 5)));
+                            }
+
+                            if (Math.Round(double.Parse(result[7].ToString()), 5) - Math.Round(Temp_CQI_Sum, 5) == 0)
+                            {
+                                Trace.WriteLine("All CQI data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_CQI_Sum, 5));
+                            }
+                            else
+                            {
+                                Trace.WriteLine("CQI: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_CQI_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[7].ToString()), 5)));
                             }
 
                         }
@@ -691,7 +755,7 @@ namespace Sanity_Checks
         public static void InitiateTracer(FileInfo f)
         {
             Trace.Listeners.Clear();
-            var twtl = new TextWriterTraceListener("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING\\Logs\\Import_" + f.Name.Replace(".csv", "") + "_" + DateTime.Now.ToShortDateString().Replace("/", "") + "_" + DateTime.Now.ToShortTimeString().Replace(":","-") + ".txt")
+            var twtl = new TextWriterTraceListener("C:\\Temp\\Logs\\Import_" + f.Name.Replace(".csv", "") + "_" + DateTime.Now.ToShortDateString().Replace("/", "") + "_" + DateTime.Now.ToShortTimeString().Replace(":","-") + ".txt")
             {
                 Name = "TextLogger",
                 TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime
