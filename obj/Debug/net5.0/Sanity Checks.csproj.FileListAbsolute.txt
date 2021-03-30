@@ -88,3 +88,6 @@ C:\aetha\GitHub\Sanity Checks\obj\Debug\net5.0\Sanity Checks.dll
 C:\aetha\GitHub\Sanity Checks\obj\Debug\net5.0\ref\Sanity Checks.dll
 C:\aetha\GitHub\Sanity Checks\obj\Debug\net5.0\Sanity Checks.pdb
 C:\aetha\GitHub\Sanity Checks\obj\Debug\net5.0\Sanity Checks.genruntimeconfig.cache
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.dll
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\ref\Sanity Checks.dll
+C:\aetha\GitHub\Network-data-import-tool\obj\Debug\net5.0\Sanity Checks.pdb

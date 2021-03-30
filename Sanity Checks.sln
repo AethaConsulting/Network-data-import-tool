@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanity Checks", "Sanity Checks.csproj", "{93C347DC-E024-4C94-BF8E-0B6B5DB2C964}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93C347DC-E024-4C94-BF8E-0B6B5DB2C964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93C347DC-E024-4C94-BF8E-0B6B5DB2C964}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93C347DC-E024-4C94-BF8E-0B6B5DB2C964}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93C347DC-E024-4C94-BF8E-0B6B5DB2C964}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D07F63C5-7DD3-4353-971C-498DCB6F7F71}
+	EndGlobalSection
+EndGlobal

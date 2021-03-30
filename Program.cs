@@ -34,26 +34,9 @@ namespace Sanity_Checks
 
         static void Main(string[] args)
         {
-            FileStream ostrm;
-            StreamWriter writer;
-            TextWriter oldOut = Console.Out;
-            try
-            {
-                ostrm = new FileStream("./Redirect.txt", FileMode.OpenOrCreate, FileAccess.Write);
-                writer = new StreamWriter(ostrm);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Cannot open Redirect.txt for writing");
-                Console.WriteLine(e.Message);
-                return;
-            }
-            Console.SetOut(writer);
-            
-            Console.SetOut(oldOut);
-            writer.Close();
-            ostrm.Close();
-            Console.WriteLine("Done");
+
+
+
 
             // var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2021 4G and 5G traffic data");
             //var di = new DirectoryInfo("C:\\Temp");
@@ -109,7 +92,21 @@ namespace Sanity_Checks
 
             foreach (var f in di.EnumerateFiles())
             {
-                outputLog = [;
+                FileStream ostrm;
+                StreamWriter writer;
+                TextWriter oldOut = Console.Out;
+                try
+                {
+                    ostrm = new FileStream("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING\\Import_" + f.FullName + "_" + DateTime.Now.ToString() + ".txt", FileMode.OpenOrCreate, FileAccess.Write);
+                    writer = new StreamWriter(ostrm);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Cannot open Redirect.txt for writing");
+                    Console.WriteLine(e.Message);
+                    return;
+                }
+                Console.SetOut(writer);
 
                 int counter = 0;
                 int wrongDL_counter = 0;
@@ -597,9 +594,9 @@ namespace Sanity_Checks
                 if (wrongCellThroughput_counter != 0)
                 {
                     Console.WriteLine("Wrong Cell Throughput data: " + wrongCellThroughput_counter + " wrong entries, " + wrongCellThroughput.Count + " uniquely wrong values.");
-                   
-                    
-                    
+
+
+
                     foreach (var ct in wrongCellThroughput)
                     {
                         Console.WriteLine(ct);
@@ -651,7 +648,7 @@ namespace Sanity_Checks
 
 
                 //Descriptions
-                
+
 
 
                 using (var bcp = new SqlBulkCopy("Server=twuxed5ffr.database.windows.net;Database=AETIS08;User Id=AuctionDB;Password=N6sSdRuN;"))
@@ -677,7 +674,7 @@ namespace Sanity_Checks
                         var result = CheckUploadData.ExecuteReader();
                         while (result.Read())
                         {
-                            if (Math.Round(double.Parse(result[0].ToString()), 5) - Math.Round(Temp_DL_Sum, 5) == 0 )
+                            if (Math.Round(double.Parse(result[0].ToString()), 5) - Math.Round(Temp_DL_Sum, 5) == 0)
                             {
                                 Console.WriteLine("All DL Traffic data has been successfully transferred to database");
                             }
@@ -690,11 +687,16 @@ namespace Sanity_Checks
                     }
                 }
 
-                
+
 
                 Console.WriteLine("Start Time: " + StartTime);
                 Console.WriteLine("End Time: " + DateTime.Now.ToString());
+                Console.SetOut(oldOut);
+                writer.Close();
+                ostrm.Close();
             }
+
+            Console.WriteLine("Done");
             Console.ReadLine();
         }
     }

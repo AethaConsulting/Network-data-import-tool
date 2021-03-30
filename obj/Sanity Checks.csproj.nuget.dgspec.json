@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\aetha\\GitHub\\Sanity Checks\\Sanity Checks.csproj": {}
+    "C:\\aetha\\GitHub\\Network-data-import-tool\\Sanity Checks.csproj": {}
   },
   "projects": {
-    "C:\\aetha\\GitHub\\Sanity Checks\\Sanity Checks.csproj": {
+    "C:\\aetha\\GitHub\\Network-data-import-tool\\Sanity Checks.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\aetha\\GitHub\\Sanity Checks\\Sanity Checks.csproj",
+        "projectUniqueName": "C:\\aetha\\GitHub\\Network-data-import-tool\\Sanity Checks.csproj",
         "projectName": "Sanity Checks",
-        "projectPath": "C:\\aetha\\GitHub\\Sanity Checks\\Sanity Checks.csproj",
-        "packagesPath": "C:\\Users\\Larry\\.nuget\\packages\\",
-        "outputPath": "C:\\aetha\\GitHub\\Sanity Checks\\obj\\",
+        "projectPath": "C:\\aetha\\GitHub\\Network-data-import-tool\\Sanity Checks.csproj",
+        "packagesPath": "C:\\Users\\HarryHain\\.nuget\\packages\\",
+        "outputPath": "C:\\aetha\\GitHub\\Network-data-import-tool\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Larry\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\HarryHain\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -62,7 +64,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.201\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.103\\RuntimeIdentifierGraph.json"
         }
       }
     }
