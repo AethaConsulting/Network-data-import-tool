@@ -154,11 +154,9 @@ namespace Sanity_Checks
                         columnAdjustment = 1;
                     }
 
-                    while (!rdr.EndOfStream && counter < 5000)
                     {
 
                         counter++;
-                        if (counter % 1000 == 0)
                         {
                             Trace.WriteLine(counter + " rows parsed. Current time: " + DateTime.Now.ToString());
                         }
