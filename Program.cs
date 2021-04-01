@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Data;
 using System.Collections.Generic;
-using System.Globalization;
-using System.ComponentModel;
 using System.IO;
 using FastMember;
 using Microsoft.Data.SqlClient;
-using System.Text;
 using System.Diagnostics;
 
 namespace Sanity_Checks
@@ -18,9 +14,11 @@ namespace Sanity_Checks
         public static List<Data> dataStore_2021;
 
         public static List<string> missingIds;
+
         public static List<string> wrongDates;
         public static List<string> wrongTimes;
         public static List<string> correctTimes;
+
         public static List<string> wrongDLTraffic;
         public static List<string> wrongULTraffic;
         public static List<string> wrongRBUtilisation;
@@ -29,26 +27,33 @@ namespace Sanity_Checks
         public static List<string> wrongAverageUsers;
         public static List<string> wrongActiveCellTime;
         public static List<string> wrongCQI;
+
         public static List<string> acceptedValues;
 
 
         public static List<string> allIds;
 
+        public static List<string> KPIs;
+
+        public static Functions functions { get; private set; }
+
         static void Main(string[] args)
         {
+            // Constructing functions class in main
+            functions = new Functions();
 
+            // Directories to pull files from
 
-
-
-            // var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2021 4G and 5G traffic data");
-            var di = new DirectoryInfo("C:\\Temp");
             //var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2020 4G traffic data\\TESTING");
+            //var di = new DirectoryInfo("C:\\Temp\\AETIS08\\2021 4G and 5G traffic data");
+            var di = new DirectoryInfo("C:\\Temp");
 
-            dataStore_Temp = new List<Data>();
+            // Lists of data (rows in csv) for 2020, 2021 and a temp store that is reset after each file
             dataStore_2020 = new List<Data>();
             dataStore_2021 = new List<Data>();
+            dataStore_Temp = new List<Data>();
 
-            //A list of string that will be populated with any Ids not contained in Cell_Mappings table in db
+            // A list of string that will be populated with any Ids not contained in Cell_Mappings table in db
             missingIds = new List<string>();
             wrongDates = new List<string>();
             wrongTimes = new List<string>();
@@ -62,20 +67,20 @@ namespace Sanity_Checks
             wrongActiveCellTime = new List<string>();
             wrongCQI = new List<string>();
 
-
+            // A list to contain all Ids in database already (in Cell_Mapping table - This can be changed) 
             allIds = new List<string>();
 
+            // A list of all values that may cause issues with data upload but aren't BIG issues, these can be replaced with zeros etc.
             acceptedValues = new List<string>() { @"\N", };
 
+            // A list of all names of KPIs for general use in output/logs
+            KPIs = new List<string>() { "DL Traffic", "UL Traffic", "RB Utilisation", "User Throughput", "Cell Throughput", "Average User", "Active Cell Time", "CQI" };
 
-
-            //Assign connection string
+            // Assign connection string
             var connectionString = "Server=twuxed5ffr.database.windows.net;Database=AETIS08;User Id=AuctionDB;Password=N6sSdRuN;";
 
-
+            // Connect to database and add all Cell_Ids in cell_mapping table to list
             var idsInDb = new List<string>();
-
-            //Connect to database
             using (var Connection = new SqlConnection(connectionString))
             {
                 Connection.Open();
@@ -86,18 +91,18 @@ namespace Sanity_Checks
                     var result = GetCellIds.ExecuteReader();
                     while (result.Read())
                     {
-                        //Trace.WriteLine(result[0].ToString());
                         idsInDb.Add(result[0].ToString().Trim());
                     }
                 }
             }
 
-
-
+            // Loop through each file in directory given above
             foreach (var f in di.EnumerateFiles())
             {
-                InitiateTracer(f);
+                // Call tracer to log writelines to txt file as well as console
+                functions.InitiateTracer(f);
 
+                // Set counters and sums to 0 as well ass initialising empty lists to store each counter, sum and error in (used for iterating through in checks at end)
                 int counter = 0;
                 int wrongDL_counter = 0;
                 int wrongUL_counter = 0;
@@ -107,6 +112,7 @@ namespace Sanity_Checks
                 int wrongAverageUsers_counter = 0;
                 int wrongActiveCellTime_counter = 0;
                 int wrongCQI_counter = 0;
+                var CountersList = new List<int>();
 
                 double Temp_DL_Sum = 0;
                 double Temp_UL_Sum = 0;
@@ -116,16 +122,24 @@ namespace Sanity_Checks
                 double Temp_AverageUsers_Sum = 0;
                 double Temp_ActiveCellTime_Sum = 0;
                 double Temp_CQI_Sum = 0;
+                var SumsList = new List<double>();
 
+                var ErrorsList = new List<List<string>>();
+
+                // Set a start time for output at end for analysis in logs and clear the temp datastore
                 var StartTime = DateTime.Now.ToString();
                 dataStore_Temp.Clear();
                 Trace.WriteLine("Current File: " + f.FullName);
-                Trace.WriteLine("Start of analysis: " + DateTime.Now.ToString());
+                Trace.WriteLine("Start of analysis: " + DateTime.Now.ToString()+ "\n");
+
+                // Format date and get parts needed for manipulating database table name we want to connect to etc. (Output it into log)
                 var DateParts = f.FullName.Split("_");
                 var DatePartDay = DateParts[1].Substring(0, 2);
                 var DatePartYear = DateParts[1].Substring(5, 4);
                 var CorrectDate = (DatePartYear + "-02-" + DatePartDay);
-                Trace.WriteLine("Date (Check for validity of code): " + CorrectDate);
+                Trace.WriteLine("Date (Check for validity of code): " + CorrectDate+ "\n");
+
+                // Clear table of any data before running
                 using (var Connection = new SqlConnection(connectionString))
                 {
                     Connection.Open();
@@ -133,13 +147,15 @@ namespace Sanity_Checks
                     {
                         ClearThisFile.CommandTimeout = 0;
                         ClearThisFile.CommandText =
-                            $"DELETE FROM Traffic_{DatePartYear} WHERE date = '{CorrectDate}'";
+                            $"DELETE FROM TESTING WHERE date = '{CorrectDate}'";
                         var result = ClearThisFile.ExecuteReader();
                     }
                 }
+
+                // Begin reading csv
                 using (var rdr = new StreamReader(f.FullName))
                 {
-                    // Check if VoLTE traffic is included
+                    // Check if VoLTE traffic is included and adjust rows if needed
                     var headerRow = rdr.ReadLine();
                     var headerCells = headerRow.Split(',');
                     var VolTEHeading = headerCells[3];
@@ -154,361 +170,74 @@ namespace Sanity_Checks
                         columnAdjustment = 1;
                     }
 
+                    // Loop all through data rows
                     while (!rdr.EndOfStream && counter < 5000)
                     {
-
+                        // Output rows and time parsed every 100000 rows to show progress
                         counter++;
                         if (counter % 1000 == 0)
                         {
                             Trace.WriteLine(counter + " rows parsed. Current time: " + DateTime.Now.ToString());
                         }
+
+                        // Assign row to be one line, then individual cells of that row (comma separate each cell)
                         var row = rdr.ReadLine();
                         var cells = row.Split(',');
+
+                        // Create new data class which will represent and store a row of data
                         var output = new Data();
 
-                        // Cell_ID
-                        var Cell_ID_Temp = cells[0];
-                        if (Cell_ID_Temp.Substring(0, 1) == "\"")
-                        {
-                            Cell_ID_Temp = Cell_ID_Temp.Remove(0, 1);
-                            Cell_ID_Temp = Cell_ID_Temp.Remove(Cell_ID_Temp.Length - 1, 1);
-                        }
+                        // Format and test Cell_ID. Add to output
+                        var Cell_ID_Temp = functions.FormatCellId(cells, ref idsInDb, ref missingIds, ref allIds);
+                        output.Cell_ID = Cell_ID_Temp;
 
-                        string Cell_ID_Temp1;
-                        string Cell_ID_Temp2;
-                        if (Cell_ID_Temp.Substring(0, 7) == "420-03-")
-                        {
-                            // Remove this part
-                            Cell_ID_Temp1 = Cell_ID_Temp.Remove(0, 7);
-                        }
-                        else
-                        {
-                            Cell_ID_Temp1 = Cell_ID_Temp;
-                        }
-
-                        if (Cell_ID_Temp1.Substring(Cell_ID_Temp1.Length - 5, 5) == ".0000")
-                        {
-                            // Remove this part
-                            var StartPosition = Cell_ID_Temp1.Length - 5;
-                            Cell_ID_Temp2 = Cell_ID_Temp1.Remove(StartPosition, 5);
-                        }
-                        else
-                        {
-                            Cell_ID_Temp2 = Cell_ID_Temp1;
-                        }
-                        output.Cell_ID = Cell_ID_Temp2;
-
-                        //Test 1: Check each cellID is in table Cell_mapping
-                        if (!idsInDb.Contains(output.Cell_ID) && !missingIds.Contains(output.Cell_ID))
-                        {
-                            missingIds.Add(output.Cell_ID);
-                        }
-                        if (!allIds.Contains(output.Cell_ID))
-                        {
-                            allIds.Add(output.Cell_ID);
-                        }
-
-                        // Date
-                        var Date_Temp = cells[1];
-                        if (Date_Temp.Substring(0, 1) == "\"")
-                        {
-                            Date_Temp = Date_Temp.Remove(0, 1);
-                            Date_Temp = Date_Temp.Remove(Date_Temp.Length - 1, 1);
-                        }
-
-                        //Test 2: 1. Each date should be the same
-                        if (Date_Temp != CorrectDate)
-                        {
-                            wrongDates.Add(Date_Temp);
-                        }
+                        // Format and test Date. Add to output.
+                        var Date_Temp = functions.FormatDate(cells, CorrectDate, ref wrongDates);
                         output.Date = DateTime.Parse(Date_Temp);
 
-                        // Time
-                        var Time_Temp = cells[2];
-                        if (Time_Temp.Substring(0, 1) == "\"")
-                        {
-                            Time_Temp = Time_Temp.Remove(0, 1);
-                            Time_Temp = Time_Temp.Remove(Time_Temp.Length - 1, 1);
-                        }
-                        if (!correctTimes.Contains(Time_Temp))
-                        {
-                            wrongTimes.Add(Time_Temp);
-                        }
+                        //Format and test Time. Add to output.
+                        var Time_Temp = functions.FormatTime(cells, correctTimes, ref wrongTimes);
                         output.Time = Int32.Parse(Time_Temp);
 
-                        // DL traffic
-
-                        var DLTraffic_Temp = cells[3 + columnAdjustment];
-                        if (DLTraffic_Temp.Substring(0, 1) == "\"")
-                        {
-                            DLTraffic_Temp = DLTraffic_Temp.Remove(0, 1);
-                            DLTraffic_Temp = DLTraffic_Temp.Remove(DLTraffic_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(DLTraffic_Temp))
-                        {
-                            DLTraffic_Temp = "0";
-                        }
-                        double DLdouble = 0;
-                        if (!double.TryParse(DLTraffic_Temp, out DLdouble))
-                        {
-                            wrongDL_counter++;
-                            if (!wrongDLTraffic.Contains(DLTraffic_Temp))
-                            {
-                                wrongDLTraffic.Add(DLTraffic_Temp);
-                            }
-                        }
-                        if (double.TryParse(DLTraffic_Temp, out DLdouble))
-                        {
-                            if (DLdouble < 0)
-                            {
-                                wrongDL_counter++;
-                                if (!wrongDLTraffic.Contains(DLTraffic_Temp))
-                                {
-                                    wrongDLTraffic.Add(DLTraffic_Temp);
-                                }
-                            }
-                        }
+                        // Format and test DL Traffic. Add to output.
+                        var DLTraffic_Temp = functions.FormatKpi(cells, (3 + columnAdjustment), acceptedValues, ref wrongDLTraffic, ref wrongDL_counter);
                         output.Data_DL_MB = Math.Round(double.Parse(DLTraffic_Temp), 5);
                         Temp_DL_Sum += output.Data_DL_MB;
 
-                        // UL traffic
-                        var ULTraffic_Temp = cells[4 + columnAdjustment];
-                        if (ULTraffic_Temp.Substring(0, 1) == "\"")
-                        {
-                            ULTraffic_Temp = ULTraffic_Temp.Remove(0, 1);
-                            ULTraffic_Temp = ULTraffic_Temp.Remove(ULTraffic_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(ULTraffic_Temp))
-                        {
-                            ULTraffic_Temp = "0";
-                        }
-                        double ULdouble = 0;
-                        if (!double.TryParse(ULTraffic_Temp, out ULdouble))
-                        {
-                            wrongUL_counter++;
-                            if (!wrongULTraffic.Contains(ULTraffic_Temp))
-                            {
-                                wrongULTraffic.Add(ULTraffic_Temp);
-                            }
-                        }
-                        if (double.TryParse(ULTraffic_Temp, out ULdouble))
-                        {
-                            if (ULdouble < 0)
-                            {
-                                wrongUL_counter++;
-                                if (!wrongULTraffic.Contains(ULTraffic_Temp))
-                                {
-                                    wrongULTraffic.Add(ULTraffic_Temp);
-                                }
-                            }
-                        }
+                        // Format and test UL Traffic. Add to output.
+                        var ULTraffic_Temp = functions.FormatKpi(cells, (4 + columnAdjustment), acceptedValues, ref wrongULTraffic, ref wrongUL_counter);
                         output.Data_UL_MB = Math.Round(double.Parse(ULTraffic_Temp), 5);
                         Temp_UL_Sum += output.Data_UL_MB;
 
-                        // RB utilisation
-                        var RB_Temp = cells[5 + columnAdjustment];
-                        if (RB_Temp.Substring(0, 1) == "\"")
-                        {
-                            RB_Temp = RB_Temp.Remove(0, 1);
-                            RB_Temp = RB_Temp.Remove(RB_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(RB_Temp))
-                        {
-                            RB_Temp = "0";
-                        }
-                        double RBUtildouble = 0;
-                        if (!double.TryParse(RB_Temp, out RBUtildouble))
-                        {
-                            wrongRB_counter++;
-                            if (!wrongRBUtilisation.Contains(RB_Temp))
-                            {
-                                wrongRBUtilisation.Add(RB_Temp);
-                            }
-                        }
-                        if (double.TryParse(RB_Temp, out RBUtildouble))
-                        {
-                            if (RBUtildouble < 0)
-                            {
-                                wrongRB_counter++;
-                                if (!wrongRBUtilisation.Contains(RB_Temp))
-                                {
-                                    wrongRBUtilisation.Add(RB_Temp);
-                                }
-                            }
-                        }
+                        // Format and test RB Utilisation. Add to output.
+                        var RB_Temp = functions.FormatKpi(cells, (5 + columnAdjustment), acceptedValues, ref wrongRBUtilisation, ref wrongRB_counter);
                         output.RB_Utilisation = Math.Round(double.Parse(RB_Temp), 5);
                         Temp_RB_Sum += output.RB_Utilisation;
 
-                        // User throughput
-                        var UserThroughput_Temp = cells[6 + columnAdjustment];
-                        if (UserThroughput_Temp.Substring(0, 1) == "\"")
-                        {
-                            UserThroughput_Temp = UserThroughput_Temp.Remove(0, 1);
-                            UserThroughput_Temp = UserThroughput_Temp.Remove(UserThroughput_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(UserThroughput_Temp))
-                        {
-                            UserThroughput_Temp = "0";
-                        }
-                        double UserThroughput = 0;
-                        if (!double.TryParse(UserThroughput_Temp, out UserThroughput))
-                        {
-                            wrongUserThroughput_counter++;
-                            if (!wrongUserThroughput.Contains(UserThroughput_Temp))
-                            {
-                                wrongUserThroughput.Add(UserThroughput_Temp);
-                            }
-                        }
-                        if (double.TryParse(UserThroughput_Temp, out UserThroughput))
-                        {
-                            if (UserThroughput < 0)
-                            {
-                                wrongUserThroughput_counter++;
-                                if (!wrongUserThroughput.Contains(UserThroughput_Temp))
-                                {
-                                    wrongUserThroughput.Add(UserThroughput_Temp);
-                                }
-                            }
-                        }
+                        // Format and test User Throughput. Add to output.
+                        var UserThroughput_Temp = functions.FormatKpi(cells, (6 + columnAdjustment), acceptedValues, ref wrongUserThroughput, ref wrongUserThroughput_counter);
                         output.UserThroughputMbps = Math.Round(double.Parse(UserThroughput_Temp), 5);
                         Temp_UserThroughput_Sum += output.UserThroughputMbps;
 
-                        // Cell throughput
-                        var CellThroughput_Temp = cells[7 + columnAdjustment];
-                        if (CellThroughput_Temp.Substring(0, 1) == "\"")
-                        {
-                            CellThroughput_Temp = CellThroughput_Temp.Remove(0, 1);
-                            CellThroughput_Temp = CellThroughput_Temp.Remove(CellThroughput_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(CellThroughput_Temp))
-                        {
-                            CellThroughput_Temp = "0";
-                        }
-                        double CellThroughput = 0;
-                        if (!double.TryParse(CellThroughput_Temp, out CellThroughput))
-                        {
-                            wrongCellThroughput_counter++;
-                            if (!wrongCellThroughput.Contains(CellThroughput_Temp))
-                            {
-                                wrongCellThroughput.Add(CellThroughput_Temp);
-                            }
-                        }
-                        if (double.TryParse(CellThroughput_Temp, out CellThroughput))
-                        {
-                            if (CellThroughput < 0 && !wrongCellThroughput.Contains(CellThroughput_Temp))
-                            {
-                                wrongCellThroughput_counter++;
-                                if (!wrongCellThroughput.Contains(CellThroughput_Temp))
-                                {
-                                    wrongCellThroughput.Add(CellThroughput_Temp);
-                                }
-                            }
-                        }
+                        // Format and test Cell Throughput. Add to output.
+                        var CellThroughput_Temp = functions.FormatKpi(cells, (7 + columnAdjustment), acceptedValues, ref wrongCellThroughput, ref wrongCellThroughput_counter);
                         output.CellThroughputMbps = Math.Round(double.Parse(CellThroughput_Temp), 5);
                         Temp_CellThroughput_Sum += output.CellThroughputMbps;
 
-                        // Average users
-                        var AverageUsers_Temp = cells[8 + columnAdjustment];
-                        if (AverageUsers_Temp.Substring(0, 1) == "\"")
-                        {
-                            AverageUsers_Temp = AverageUsers_Temp.Remove(0, 1);
-                            AverageUsers_Temp = AverageUsers_Temp.Remove(AverageUsers_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(AverageUsers_Temp))
-                        {
-                            AverageUsers_Temp = "0";
-                        }
-                        double AvgUsersDouble = 0;
-                        if (!double.TryParse(AverageUsers_Temp, out AvgUsersDouble))
-                        {
-                            wrongAverageUsers_counter++;
-                            if (!wrongAverageUsers.Contains(AverageUsers_Temp))
-                            {
-                                wrongAverageUsers.Add(AverageUsers_Temp);
-                            }
-                        }
-                        if (double.TryParse(AverageUsers_Temp, out AvgUsersDouble))
-                        {
-                            if (AvgUsersDouble < 0 && !wrongAverageUsers.Contains(AverageUsers_Temp))
-                            {
-                                wrongAverageUsers_counter++;
-                                if (!wrongAverageUsers.Contains(AverageUsers_Temp))
-                                {
-                                    wrongAverageUsers.Add(AverageUsers_Temp);
-                                }
-                            }
-                        }
+                        // Format and test Average Users. Add to output.
+                        var AverageUsers_Temp = functions.FormatKpi(cells, (8 + columnAdjustment), acceptedValues, ref wrongAverageUsers, ref wrongAverageUsers_counter);
                         output.AverageUsers = Math.Round(double.Parse(AverageUsers_Temp), 5);
                         Temp_AverageUsers_Sum += output.AverageUsers;
 
-                        // Active cell time
-                        var ActiveCellTime_Temp = cells[9 + columnAdjustment];
-                        if (ActiveCellTime_Temp.Substring(0, 1) == "\"")
-                        {
-                            ActiveCellTime_Temp = ActiveCellTime_Temp.Remove(0, 1);
-                            ActiveCellTime_Temp = ActiveCellTime_Temp.Remove(ActiveCellTime_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(ActiveCellTime_Temp))
-                        {
-                            ActiveCellTime_Temp = "0";
-                        }
-                        double ActiveCellTimeDouble = 0;
-                        if (!double.TryParse(ActiveCellTime_Temp, out ActiveCellTimeDouble))
-                        {
-                            wrongActiveCellTime_counter++;
-                            if (!wrongActiveCellTime.Contains(ActiveCellTime_Temp))
-                            {
-                                wrongActiveCellTime.Add(ActiveCellTime_Temp);
-                            }
-                        }
-                        if (double.TryParse(ActiveCellTime_Temp, out ActiveCellTimeDouble))
-                        {
-                            if (ActiveCellTimeDouble < 0 && !wrongActiveCellTime.Contains(ActiveCellTime_Temp))
-                            {
-                                wrongActiveCellTime_counter++;
-                                if (!wrongActiveCellTime.Contains(ActiveCellTime_Temp))
-                                {
-                                    wrongActiveCellTime.Add(ActiveCellTime_Temp);
-                                }
-                            }
-                        }
+                        // Format and test Active Cell Time. Add to output.
+                        var ActiveCellTime_Temp = functions.FormatKpi(cells, (9 + columnAdjustment), acceptedValues, ref wrongActiveCellTime, ref wrongActiveCellTime_counter);
                         output.ActiveCellTime = Math.Round(double.Parse(ActiveCellTime_Temp), 5);
                         Temp_ActiveCellTime_Sum += output.ActiveCellTime;
 
-                        // CQI
-                        var CQI_Temp = cells[10 + columnAdjustment];
-                        if (CQI_Temp.Substring(0, 1) == "\"")
-                        {
-                            CQI_Temp = CQI_Temp.Remove(0, 1);
-                            CQI_Temp = CQI_Temp.Remove(CQI_Temp.Length - 1, 1);
-                        }
-                        if (acceptedValues.Contains(CQI_Temp))
-                        {
-                            CQI_Temp = "0";
-                        }
-                        double CQIDouble = 0;
-                        if (!double.TryParse(CQI_Temp, out CQIDouble))
-                        {
-                            wrongCQI_counter++;
-                            if (!wrongCQI.Contains(CQI_Temp))
-                            {
-                                wrongCQI.Add(CQI_Temp);
-                            }
-                        }
-                        if (double.TryParse(CQI_Temp, out CQIDouble))
-                        {
-                            if (CQIDouble < 0 && !wrongCQI.Contains(CQI_Temp))
-                            {
-                                wrongCQI_counter++;
-                                if (!wrongCQI.Contains(CQI_Temp))
-                                {
-                                    wrongCQI.Add(CQI_Temp);
-                                }
-                            }
-                        }
+                        // Format and test CQI. Add to output.
+                        var CQI_Temp = functions.FormatKpi(cells, (10 + columnAdjustment), acceptedValues, ref wrongCQI, ref wrongCQI_counter);
                         output.CQI = Math.Round(double.Parse(CQI_Temp), 5);
                         Temp_CQI_Sum += output.CQI;
-
 
                         // Add this row to the data store
                         if (DatePartYear == "2020")
@@ -523,299 +252,90 @@ namespace Sanity_Checks
                     }
                 }
                 double missrate = Math.Round((double)missingIds.Count / allIds.Count, 3) * 100;
-                Trace.WriteLine("Unique IDs in data set: " + allIds.Count);
+                Trace.WriteLine("\nUnique IDs in data set: " + allIds.Count);
                 Trace.WriteLine("Missing Ids: " + missingIds.Count + ". Miss rate: " + missrate + "%");
                 Trace.WriteLine("Wrong Dates: " + wrongDates.Count);
                 Trace.WriteLine("Wrong Times: " + wrongTimes.Count);
 
+                // Build error list
+                ErrorsList = functions.BuildErrorList(wrongDLTraffic, wrongULTraffic, wrongRBUtilisation, wrongUserThroughput, wrongCellThroughput, wrongAverageUsers, wrongActiveCellTime, wrongCQI);
 
-                if (wrongDL_counter != 0)
+                var x = 0;
+                foreach (var c in CountersList)
                 {
-                    Trace.WriteLine("Wrong DL traffic data: " + wrongDL_counter + " wrong entries, " + wrongDLTraffic.Count + " uniquely wrong values.");
-                    foreach (var dl in wrongDLTraffic)
+                    if (c != 0)
                     {
-                        Trace.WriteLine(dl);
+                        Trace.WriteLine($"Wrong {KPIs[x]} data: " + c + " wrong entries, " + ErrorsList[x].Count + " uniquely wrong values.");
+                        foreach (var e in ErrorsList[x])
+                        {
+                            Trace.WriteLine(e);
+                        }
                     }
-                }
-                else
-                {
-                    Trace.WriteLine("DL Traffic data OK!");
-                }
-
-                if (wrongUL_counter != 0)
-                {
-                    Trace.WriteLine("Wrong UL traffic data: " + wrongUL_counter + " wrong entries, " + wrongULTraffic.Count + " uniquely wrong values.");
-                    foreach (var ul in wrongULTraffic)
+                    else
                     {
-                        Trace.WriteLine(ul);
+                        Trace.WriteLine($"{KPIs[x]} data OK!");
                     }
-                }
-                else
-                {
-                    Trace.WriteLine("UL Traffic data OK!");
+                    x++;
                 }
 
-                if (wrongRB_counter != 0)
-                {
-                    Trace.WriteLine("Wrong RB Utilisation data: " + wrongRB_counter + " wrong entries, " + wrongRBUtilisation.Count + " uniquely wrong values.");
-                    foreach (var rb in wrongRBUtilisation)
-                    {
-                        Trace.WriteLine(rb);
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("RB Utilisation data OK!");
-                }
+                // Build Sums list
+                SumsList = functions.BuildSumsList(Temp_DL_Sum, Temp_UL_Sum, Temp_RB_Sum, Temp_UserThroughput_Sum, Temp_CellThroughput_Sum, Temp_AverageUsers_Sum, Temp_ActiveCellTime_Sum, Temp_CQI_Sum);
 
-                if (wrongUserThroughput_counter != 0)
-                {
-                    Trace.WriteLine("Wrong User Throughout data: " + wrongUserThroughput_counter + " wrong entries, " + wrongUserThroughput.Count + " uniquely wrong values.");
-                    foreach (var ut in wrongUserThroughput)
-                    {
-                        Trace.WriteLine(ut);
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("User Throughput data OK!");
-                }
-
-                if (wrongCellThroughput_counter != 0)
-                {
-                    Trace.WriteLine("Wrong Cell Throughput data: " + wrongCellThroughput_counter + " wrong entries, " + wrongCellThroughput.Count + " uniquely wrong values.");
-
-
-
-                    foreach (var ct in wrongCellThroughput)
-                    {
-                        Trace.WriteLine(ct);
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("Cell Throughput data OK!");
-                }
-
-                if (wrongAverageUsers_counter != 0)
-                {
-                    Trace.WriteLine("Wrong Average Users data: " + wrongAverageUsers_counter + " wrong entries, " + wrongAverageUsers.Count + " uniquely wrong values.");
-                    foreach (var au in wrongAverageUsers)
-                    {
-                        Trace.WriteLine(au);
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("Average Users data OK!");
-                }
-
-                if (wrongActiveCellTime_counter != 0)
-                {
-                    Trace.WriteLine("Wrong Active Cell Time data: " + wrongActiveCellTime_counter + " wrong entries, " + wrongActiveCellTime.Count + " uniquely wrong values.");
-                    foreach (var act in wrongActiveCellTime)
-                    {
-                        Trace.WriteLine(act);
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("Active Cell Time data OK!");
-                }
-
-                if (wrongCQI_counter != 0)
-                {
-                    Trace.WriteLine("Wrong CQI data: " + wrongCQI_counter + " wrong entries, " + wrongCQI.Count + " uniquely wrong values."); Trace.WriteLine("Wrong CQI:");
-                    foreach (var cqi in wrongCQI)
-                    {
-                        Trace.WriteLine(cqi);
-                    }
-                }
-                else
-                {
-                    Trace.WriteLine("CQI data OK!");
-                }
-
-
-                //Descriptions
-
-
-
+                // Bulk copy data from file to SQL
                 using (var bcp = new SqlBulkCopy("Server=twuxed5ffr.database.windows.net;Database=AETIS08;User Id=AuctionDB;Password=N6sSdRuN;"))
                 {
                     using (var reader = ObjectReader.Create(dataStore_Temp, new string[] { "Cell_ID", "Date", "Time", "Data_UL_MB", "Data_DL_MB", "RB_Utilisation", "UserThroughputMbps", "CellThroughputMbps", "AverageUsers", "ActiveCellTime", "CQI" }))
                     {
-                        Trace.WriteLine("SQL Upload started: " + DateTime.Now.ToString());
-                        bcp.DestinationTableName = "Traffic_" + DatePartYear;
+                        Trace.WriteLine("\nSQL Upload started: " + DateTime.Now.ToString());
+                        bcp.DestinationTableName = "TESTING";
                         bcp.BatchSize = 40000;
                         bcp.BulkCopyTimeout = 0;
                         bcp.WriteToServer(reader);
-                        Trace.WriteLine("SQL Upload finished: " + DateTime.Now.ToString());
+                        Trace.WriteLine("SQL Upload finished: " + DateTime.Now.ToString()+ "\n");
                     }
 
                 }
+
+                // Compare data in database with that in compiler to ensure all data was transferred to DB 
                 using (var Connection = new SqlConnection(connectionString))
                 {
                     Connection.Open();
                     using (SqlCommand CheckUploadData = Connection.CreateCommand())
                     {
                         CheckUploadData.CommandText =
-                            $"SELECT sum(Data_DL_MB), sum(Data_UL_MB), sum(RB_Utilisation), sum(UserThroughputMbps), sum(CellThroughputMbps), sum(AverageUsers), sum(ActiveCellTime), sum(CQI)  FROM Traffic_{DatePartYear} WHERE date = '{CorrectDate}'";
+                            $"SELECT sum(Data_DL_MB), sum(Data_UL_MB), sum(RB_Utilisation), sum(UserThroughputMbps), sum(CellThroughputMbps), sum(AverageUsers), sum(ActiveCellTime), sum(CQI)  FROM TESTING WHERE date = '{CorrectDate}'";
                         var result = CheckUploadData.ExecuteReader();
+                        var resultslist = new List<double>();
                         while (result.Read())
                         {
-                            if (Math.Round(double.Parse(result[0].ToString()), 5) - Math.Round(Temp_DL_Sum, 5) == 0)
+                            resultslist = functions.BuildResultsList(double.Parse(result[0].ToString()), double.Parse(result[1].ToString()), double.Parse(result[2].ToString()), double.Parse(result[3].ToString()), double.Parse(result[4].ToString()), double.Parse(result[5].ToString()), double.Parse(result[6].ToString()), double.Parse(result[7].ToString()));
+                        }
+                        var i = 0;
+                        foreach (var r in resultslist)
+                        {
+                            if (Math.Round(double.Parse(r.ToString()), 5) - Math.Round(SumsList[i], 5) == 0)
                             {
-                                Trace.WriteLine("All DL Traffic data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_DL_Sum, 5));
+                                Trace.WriteLine($"All {KPIs[i]} data has been successfully transferred to database. Traffic Volume: " + Math.Round(SumsList[i], 5));
                             }
                             else
                             {
-                                Trace.WriteLine("DL Traffic: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_DL_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[0].ToString()), 5)));
+                                Trace.WriteLine($"{KPIs[i]}: Inconsistency between database and compiler. Compiler: " + Math.Round(SumsList[i], 5) + ". Database: " + (Math.Round(double.Parse(r.ToString()), 5)));
                             }
-
-                            if (Math.Round(double.Parse(result[1].ToString()), 5) - Math.Round(Temp_UL_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All UL Traffic data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_UL_Sum, 5));
-                            }
-                            else
-                            {
-                                Trace.WriteLine("UL Traffic: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_UL_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[1].ToString()), 5)));
-                            }
-
-                            if (Math.Round(double.Parse(result[2].ToString()), 5) - Math.Round(Temp_RB_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All RB utilisation data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_RB_Sum, 5));
-                            }
-                            else
-                            {
-                                Trace.WriteLine("RB utilisation: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_RB_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[2].ToString()), 5)));
-                            }
-
-                            if (Math.Round(double.Parse(result[3].ToString()), 5) - Math.Round(Temp_UserThroughput_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All User throughput data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_UserThroughput_Sum, 5));
-                            }
-                            else
-                            {
-                                Trace.WriteLine("User Throughput: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_UserThroughput_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[3].ToString()), 5)));
-                            }
-
-                            if (Math.Round(double.Parse(result[4].ToString()), 5) - Math.Round(Temp_CellThroughput_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All Cell throughput has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_CellThroughput_Sum, 5));
-                            }
-                            else
-                            {
-                                Trace.WriteLine("Cell Throughput: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_CellThroughput_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[4].ToString()), 5)));
-                            }
-
-                            if (Math.Round(double.Parse(result[5].ToString()), 5) - Math.Round(Temp_AverageUsers_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All Average users data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_AverageUsers_Sum, 5));
-                            }
-
-                            else
-                            {
-                                Trace.WriteLine("Average users: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_AverageUsers_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[5].ToString()), 5)));
-                            }
-
-                            if (Math.Round(double.Parse(result[6].ToString()), 5) - Math.Round(Temp_ActiveCellTime_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All Active cell time data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_ActiveCellTime_Sum, 5));
-                            }
-                            else
-                            {
-                                Trace.WriteLine("Cell Time: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_ActiveCellTime_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[6].ToString()), 5)));
-                            }
-
-                            if (Math.Round(double.Parse(result[7].ToString()), 5) - Math.Round(Temp_CQI_Sum, 5) == 0)
-                            {
-                                Trace.WriteLine("All CQI data has been successfully transferred to database. Traffic Volume: "+ Math.Round(Temp_CQI_Sum, 5));
-                            }
-                            else
-                            {
-                                Trace.WriteLine("CQI: Inconsistency between database and compiler. Compiler: "+ Math.Round(Temp_CQI_Sum, 5)+". Database: "+ (Math.Round(double.Parse(result[7].ToString()), 5)));
-                            }
-
+                            i++;
                         }
                     }
                 }
 
-
-
-                Trace.WriteLine("Start Time: " + StartTime);
+                // Output start time and end time so user can determine how long the entire run for this file took
+                Trace.WriteLine("\nStart Time: " + StartTime);
                 Trace.WriteLine("End Time: " + DateTime.Now.ToString());
             }
 
-
-            Trace.WriteLine("Done");
-            Trace.WriteLine("");
+            Trace.WriteLine("\nDone");
+            Trace.WriteLine("\n\n");
             Console.ReadLine();
         }
-        public static void InitiateTracer(FileInfo f)
-        {
-            Trace.Listeners.Clear();
-            var twtl = new TextWriterTraceListener("C:\\Temp\\Logs\\Import_" + f.Name.Replace(".csv", "") + "_" + DateTime.Now.ToShortDateString().Replace("/", "") + "_" + DateTime.Now.ToShortTimeString().Replace(":","-") + ".txt")
-            {
-                Name = "TextLogger",
-                TraceOutputOptions = TraceOptions.ThreadId | TraceOptions.DateTime
-            };
-            var ctl = new ConsoleTraceListener(false) { TraceOutputOptions = TraceOptions.DateTime };
-            Trace.Listeners.Add(twtl);
-            Trace.Listeners.Add(ctl);
-            Trace.AutoFlush = true;
-        }
     }
-
-    public class Data
-    {
-        public string Cell_ID
-        {
-            get; set;
-        }
-        public DateTime Date
-        {
-            get; set;
-        }
-        public int Time
-        {
-            get; set;
-        }
-        public double Data_DL_MB
-        {
-            get; set;
-        }
-        public double Data_UL_MB
-        {
-            get; set;
-        }
-        public double RB_Utilisation
-        {
-            get; set;
-        }
-        public double UserThroughputMbps
-        {
-            get; set;
-        }
-        public double CellThroughputMbps
-        {
-            get; set;
-        }
-        public double AverageUsers
-        {
-            get; set;
-        }
-        public double ActiveCellTime
-        {
-            get; set;
-        }
-        public double CQI
-        {
-            get; set;
-        }
-        
-    }
-
 }
 
 
