@@ -1227,13 +1227,19 @@
     ]
   },
   "packageFolders": {
+    "C:\\Users\\Larry\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
+      "projectUniqueName": "C:\\aetha\\GitHub\\Sanity Checks\\Sanity Checks.csproj",
       "projectName": "Sanity Checks",
+      "projectPath": "C:\\aetha\\GitHub\\Sanity Checks\\Sanity Checks.csproj",
+      "packagesPath": "C:\\Users\\Larry\\.nuget\\packages\\",
+      "outputPath": "C:\\aetha\\GitHub\\Sanity Checks\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
+        "C:\\Users\\Larry\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net5.0"
@@ -1281,6 +1287,7 @@
             "privateAssets": "all"
           }
         },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.201\\RuntimeIdentifierGraph.json"
       }
     }
   }
