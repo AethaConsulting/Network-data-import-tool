@@ -9,6 +9,7 @@ namespace Sanity_Checks
 {
     class Program
     {
+
         public static List<Data> dataStore_Temp;
         public static List<Data> dataStore_2020;
         public static List<Data> dataStore_2021;
@@ -39,6 +40,8 @@ namespace Sanity_Checks
 
         static void Main(string[] args)
         {
+            
+
             // Constructing functions class in main
             functions = new Functions();
 
@@ -71,7 +74,7 @@ namespace Sanity_Checks
             allIds = new List<string>();
 
             // A list of all values that may cause issues with data upload but aren't BIG issues, these can be replaced with zeros etc.
-            acceptedValues = new List<string>() { @"\N", };
+            acceptedValues = new List<string>() { @"\N", "" };
 
             // A list of all names of KPIs for general use in output/logs
             KPIs = new List<string>() { "DL Traffic", "UL Traffic", "RB Utilisation", "User Throughput", "Cell Throughput", "Average User", "Active Cell Time", "CQI" };
@@ -137,7 +140,10 @@ namespace Sanity_Checks
                 var DatePartDay = DateParts[1].Substring(0, 2);
                 var DatePartYear = DateParts[1].Substring(5, 4);
                 var CorrectDate = (DatePartYear + "-02-" + DatePartDay);
+                var TechPart = f.Name.Substring(0, 2);
                 Trace.WriteLine("Date (Check for validity of code): " + CorrectDate+ "\n");
+
+                string DestinationTable = "Traffic_v3_"+DatePartYear;
 
                 // Clear table of any data before running
                 using (var Connection = new SqlConnection(connectionString))
@@ -147,7 +153,7 @@ namespace Sanity_Checks
                     {
                         ClearThisFile.CommandTimeout = 0;
                         ClearThisFile.CommandText =
-                            $"DELETE FROM TESTING WHERE date = '{CorrectDate}'";
+                            $"DELETE FROM {DestinationTable} WHERE date = '{CorrectDate}' AND Tech = '{TechPart}'";
                         var result = ClearThisFile.ExecuteReader();
                     }
                 }
@@ -239,6 +245,9 @@ namespace Sanity_Checks
                         output.CQI = Math.Round(double.Parse(CQI_Temp), 5);
                         Temp_CQI_Sum += output.CQI;
 
+                        //Assign whether this piece of data is 5G or 4G
+                        output.Tech = TechPart;
+
                         // Add this row to the data store
                         if (DatePartYear == "2020")
                         {
@@ -284,10 +293,10 @@ namespace Sanity_Checks
                 // Bulk copy data from file to SQL
                 using (var bcp = new SqlBulkCopy("Server=twuxed5ffr.database.windows.net;Database=AETIS08;User Id=AuctionDB;Password=N6sSdRuN;"))
                 {
-                    using (var reader = ObjectReader.Create(dataStore_Temp, new string[] { "Cell_ID", "Date", "Time", "Data_UL_MB", "Data_DL_MB", "RB_Utilisation", "UserThroughputMbps", "CellThroughputMbps", "AverageUsers", "ActiveCellTime", "CQI" }))
+                    using (var reader = ObjectReader.Create(dataStore_Temp, new string[] { "Cell_ID", "Date", "Time", "Data_UL_MB", "Data_DL_MB", "RB_Utilisation", "UserThroughputMbps", "CellThroughputMbps", "AverageUsers", "ActiveCellTime", "CQI", "Tech" }))
                     {
                         Trace.WriteLine("\nSQL Upload started: " + DateTime.Now.ToString());
-                        bcp.DestinationTableName = "TESTING";
+                        bcp.DestinationTableName = DestinationTable;
                         bcp.BatchSize = 40000;
                         bcp.BulkCopyTimeout = 0;
                         bcp.WriteToServer(reader);
@@ -303,7 +312,7 @@ namespace Sanity_Checks
                     using (SqlCommand CheckUploadData = Connection.CreateCommand())
                     {
                         CheckUploadData.CommandText =
-                            $"SELECT sum(Data_DL_MB), sum(Data_UL_MB), sum(RB_Utilisation), sum(UserThroughputMbps), sum(CellThroughputMbps), sum(AverageUsers), sum(ActiveCellTime), sum(CQI)  FROM TESTING WHERE date = '{CorrectDate}'";
+                            $"SELECT sum(Data_DL_MB), sum(Data_UL_MB), sum(RB_Utilisation), sum(UserThroughputMbps), sum(CellThroughputMbps), sum(AverageUsers), sum(ActiveCellTime), sum(CQI)  FROM {DestinationTable} WHERE date = '{CorrectDate}' AND Tech = '{TechPart}' ";
                         var result = CheckUploadData.ExecuteReader();
                         var resultslist = new List<double>();
                         while (result.Read())

@@ -49,5 +49,9 @@ namespace Sanity_Checks
         {
             get; set;
         }
+        public string Tech
+        {
+            get; set;
+        }
     }
 }
