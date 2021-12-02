@@ -9,6 +9,30 @@ namespace Sanity_Checks
         {
             get; set;
         }
+        public string Vendor
+        {
+            get; set;
+        }
+        public string Cell_Name
+        {
+            get; set;
+        }
+
+        public string Site_ID
+        {
+            get; set;
+        }
+
+        public string Sector_ID
+        {
+            get; set;
+        }
+
+        public string Band_ID
+        {
+            get; set;
+        }
+
         public DateTime Date
         {
             get; set;
